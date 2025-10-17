@@ -100,7 +100,7 @@ class EarleyChart:
             print("No parse found")
             return
 
-        max_item = max(start, key=start.get)
+        max_item = min(start, key=start.get)
         for item in start:
             print(f"Found complete parse with weight {item.weight}: {item}")
         # print(f"Best parse has weight {start[max_item]}: {max_item}")

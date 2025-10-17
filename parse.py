@@ -101,8 +101,8 @@ class EarleyChart:
             return
 
         max_item = min(start, key=start.get)
-        for item in start:
-            print(f"Found complete parse with weight {item.weight}: {item}")
+        # for item in start:
+        #     print(f"Found complete parse with weight {item.weight}: {item}")
         # print(f"Best parse has weight {start[max_item]}: {max_item}")
 
         def getTree(item: Item) -> str:

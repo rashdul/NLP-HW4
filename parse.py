@@ -101,6 +101,8 @@ class EarleyChart:
             return
 
         max_item = max(start, key=start.get)
+        for item in start:
+            print(f"Found complete parse with weight {item.weight}: {item}")
         # print(f"Best parse has weight {start[max_item]}: {max_item}")
 
         def getTree(item: Item) -> str:
@@ -198,7 +200,7 @@ class EarleyChart:
         mid = item.start_position   # start position of this item = end position of item to its left
         for customer in self.cols[mid].all():  # could you eliminate this inefficient linear search?
             if customer.next_symbol() == item.rule.lhs:
-                weight = customer.weight + item.weight
+                weight = customer.weight + item.weight 
                 new_item = customer.with_dot_advanced(prev=customer, edge=("attach", item), weight=weight)
                 self.cols[position].push(new_item)
                 log.debug(f"\tAttached to get: {new_item} in column {position}")

@@ -97,13 +97,13 @@ class EarleyChart:
                     # print(f"Found complete parse with weight {item.weight}: {item}")
 
         if not start:
-            print("No parse found")
-            return
+            # print("No parse found")
+            return "NONE"
 
-        max_item = max(start, key=start.get)
-        # for item in start:
-        #     print(f"Found complete parse with weight {item.weight}: {item}")
-        # print(f"Best parse has weight {start[max_item]}: {max_item}")
+        best_item = min(start, key=start.get)
+        for item in start:
+            print(f"Found complete parse with weight {item.weight}: {item}")
+        # print(f"Best parse has weight {start[best_item]}: {best_item}")
 
         def getTree(item: Item) -> str:
             edges: List[Tuple[str, object]] = []
@@ -137,7 +137,7 @@ class EarleyChart:
             else:
                 return f"({item.rule.lhs} {' '.join(children_strs)})"
 
-        return getTree(max_item) + f" {start[max_item]}"
+        return getTree(best_item) + f" {start[best_item]}"
 
 
     def _run_earley(self) -> None:
@@ -400,6 +400,16 @@ class Item:
         rhs.insert(self.dot_position, DOT)
         dotted_rule = f"{self.rule.lhs} → {' '.join(rhs)}"
         return f"({self.start_position}, {dotted_rule})"  # matches notation on slides
+    
+    def __eq__(self, other):
+        if not isinstance(other, Item):
+            return NotImplemented
+        return (self.rule == other.rule and
+                self.dot_position == other.dot_position and
+                self.start_position == other.start_position)
+
+    def __hash__(self):
+        return hash((self.rule, self.dot_position, self.start_position))
 
 def main():
     # Parse the command-line arguments
@@ -417,12 +427,9 @@ def main():
                 log.debug(f"Parsing sentence: {sentence}")
                 chart = EarleyChart(sentence.split(), grammar, progress=args.progress)
                 # print the result
-                if chart.accepted():
-                    print(chart.printParse())
-                else:
-                    print(
-                        f"NONE"
-                    )
+                
+                print(chart.printParse())
+                
                 log.debug(f"Profile of work done: {chart.profile}")
 
 

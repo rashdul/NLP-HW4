@@ -64,12 +64,13 @@ class EarleyChart:
         """Create the chart based on parsing `tokens` with `grammar`.  
         `progress` says whether to display progress bars as we parse."""
         self.tokens = tokens
-        self.grammar = grammar
+        # self.grammar = grammar
         self.progress = progress
         self.profile: CounterType[str] = Counter()
-        
+        self._predicted: List[set[str]] = [set() for _ in range(len(tokens)+1)]  # for optimization
 
         self.cols: List[Agenda]
+        self.grammar = grammar.vocablory_specilizarion(tokens)
         self._run_earley()    # run Earley's algorithm to construct self.cols
 
     def accepted(self) -> bool:
@@ -174,6 +175,9 @@ class EarleyChart:
 
     def _predict(self, nonterminal: str, position: int) -> None:
         """Start looking for this nonterminal at the given position."""
+        if nonterminal in self._predicted[position]:
+            return  # already predicted this nonterminal at this position
+        self._predicted[position].add(nonterminal)
         for rule in self.grammar.expansions(nonterminal):
             new_item = Item(rule, dot_position=0, start_position=position, weight = 0.0)
             self.cols[position].push(new_item)
@@ -301,6 +305,8 @@ class Grammar:
         adding rules from the specified files if any."""
         self.start_symbol = start_symbol
         self._expansions: Dict[str, List[Rule]] = {}    # maps each LHS to the list of rules that expand it
+        self.R: Dict[Tuple[str, str], List[Rule]] = {}  # prefix table
+        self.P: Dict[str, set[str]] = {}                # left-parent table
         # Read the input grammar files
         for file in files:
             self.add_rules_from_file(file)
@@ -332,11 +338,33 @@ class Grammar:
     def is_nonterminal(self, symbol: str) -> bool:
         """Is symbol a nonterminal symbol?"""
         return symbol in self._expansions
-    
-    
-    
+
+    def is_preterminal(self, symbol: str) -> bool:
+        """Is symbol a preterminal symbol?"""
+        return any(len(rule.rhs) == 1 and self.is_terminal(rule.rhs[0]) for rule in self.expansions(symbol))
+
+    def is_terminal(self, symbol: str) -> bool:
+        """Is symbol a terminal symbol?"""
+        return symbol not in self._expansions
 
 
+    def vocablory_specilizarion(self, tokens: List[str]) -> None:
+        """Specialize the grammar to the vocabulary of the given tokens."""
+        # This method can be implemented later if needed.
+        allowed_words = set(tokens)
+        specialized = Grammar(self.start_symbol)
+        for lhs, rules in self._expansions.items():
+            filtered_rules = []
+            for rule in rules:
+                # Keep rule if:
+                #  1. it has no terminals, OR
+                #  2. all terminals it uses are in the sentence.
+                if all((sym in self._expansions) or (sym in allowed_words)
+                    for sym in rule.rhs):
+                    filtered_rules.append(rule)
+            if filtered_rules:
+                specialized._expansions[lhs] = filtered_rules
+        return specialized
 
 # A dataclass is a class that provides some useful defaults for you. If you define
 # the data that the class should hold, it will automatically make things like an

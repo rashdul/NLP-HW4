@@ -176,7 +176,7 @@ class EarleyChart:
     def _predict(self, nonterminal: str, position: int) -> None:
         """Start looking for this nonterminal at the given position."""
         if nonterminal in self._predicted[position]:
-            return  # already predicted this nonterminal at this position
+            return  #
         self._predicted[position].add(nonterminal)
         for rule in self.grammar.expansions(nonterminal):
             new_item = Item(rule, dot_position=0, start_position=position, weight = 0.0)

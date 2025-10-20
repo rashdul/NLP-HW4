@@ -274,6 +274,12 @@ class Agenda:
         if item not in self._index:    # O(1) lookup in hash table
             self._items.append(item)
             self._index[item] = len(self._items) - 1
+        else:
+            idx = self._index.get(item)
+            existing = self._items[idx]
+            # keep whichever has lower weight
+            if isinstance(item, Item) and item.weight < existing.weight:
+                self._items[idx] = item
             
     def pop(self) -> Item:
         """Returns one of the items that was waiting to be popped (dequeued).

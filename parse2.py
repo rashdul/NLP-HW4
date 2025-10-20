@@ -85,7 +85,7 @@ class EarleyChart:
         return False   # we didn't find any appropriate item
     
 
-    def print_parse_trees(self) -> None:
+    def print_parse_trees(self):
         """Print the best parse tree found in this chart."""
         start = {}
         # for debugging
@@ -489,8 +489,12 @@ def main():
                 log.debug(f"Parsing sentence: {sentence}")
                 chart = EarleyChart(sentence.split(), grammar, progress=args.progress)
                 # print the result
-                tree, weight = chart.print_parse_trees()
-                print(f"{tree} {weight}")
+                if chart.accepted():
+                    tree, weight = chart.print_parse_trees()
+                    print(tree)
+                    print(weight)
+                else:
+                    print("NONE")
 
                 log.debug(f"Profile of work done: {chart.profile}")
 

@@ -84,7 +84,7 @@ class EarleyChart:
         return False   # we didn't find any appropriate item
     
 
-    def print_parse_trees(self) -> None:
+    def print_parse_trees(self):
         """Print the best parse tree found in this chart."""
         start = {}
         # for debugging
@@ -94,11 +94,11 @@ class EarleyChart:
             if (item.rule.lhs == self.grammar.start_symbol   # a ROOT item in this column
                 and item.next_symbol() is None               # that is complete
                 and item.start_position == 0):               # and started back at position 0
-                    start[item] = item.weight
-
+                    start[item.weight] = item
         # for item in self.cols[-1].all():
         #     print(f"{item} weight: {item.weight}, and first pointer: {item.edge}, and second pointer: {item.edge_attach}")
-
+        # find minimum weight parse
+        min_weight = min(start.keys())
         def build_tree(item: Item) -> str:
             """Recursively build the parse tree string from the given item."""
             lhs = item.rule.lhs
@@ -135,7 +135,7 @@ class EarleyChart:
             children.reverse()
             return f"({lhs} {' '.join(children)})"
             
-        return f"{build_tree(min(start, key=start.get))} {min(start, key=start.get).weight}"  # return the tree with the lowest weight
+        return build_tree(start[min_weight]), min_weight  # return the tree with the lowest weight
 
     def _run_earley(self) -> None:
         """Fill in the Earley chart."""
@@ -460,7 +460,12 @@ def main():
                 log.debug(f"Parsing sentence: {sentence}")
                 chart = EarleyChart(sentence.split(), grammar, progress=args.progress)
                 # print the result
-                print(chart.print_parse_trees())
+                if chart.accepted():
+                    tree, weight = chart.print_parse_trees()
+                    print(tree)
+                    print(weight)
+                else:
+                    print("NONE")
                 log.debug(f"Profile of work done: {chart.profile}")
 
 

@@ -95,11 +95,11 @@ class EarleyChart:
             if (item.rule.lhs == self.grammar.start_symbol   # a ROOT item in this column
                 and item.next_symbol() is None               # that is complete
                 and item.start_position == 0):               # and started back at position 0
-                    start[item] = item.weight
-
+                    start[item.weight] = item
         # for item in self.cols[-1].all():
         #     print(f"{item} weight: {item.weight}, and first pointer: {item.edge}, and second pointer: {item.edge_attach}")
-
+        # find minimum weight parse
+        min_weight = min(start.keys())
         def build_tree(item: Item) -> str:
             """Recursively build the parse tree string from the given item."""
             lhs = item.rule.lhs
@@ -136,7 +136,8 @@ class EarleyChart:
             children.reverse()
             return f"({lhs} {' '.join(children)})"
             
-        return f"{build_tree(min(start, key=start.get))} {min(start, key=start.get).weight}"  # return the tree with the lowest weight
+        # return f"{build_tree(min(start, key=start.get))} {min(start, key=start.get).weight}"  # return the tree with the lowest weight
+        return build_tree(start[min_weight]), min_weight  # return the tree with the lowest weight
 
     def _run_earley(self) -> None:
         """Fill in the Earley chart."""
@@ -278,6 +279,12 @@ class Agenda:
         if item not in self._index:    # O(1) lookup in hash table
             self._items.append(item)
             self._index[item] = len(self._items) - 1
+        else:
+            idx = self._index.get(item)
+            existing = self._items[idx]
+            # keep whichever has lower weight
+            if isinstance(item, Item) and item.weight < existing.weight:
+                self._items[idx] = item
             
     def pop(self) -> Item:
         """Returns one of the items that was waiting to be popped (dequeued).
@@ -482,7 +489,9 @@ def main():
                 log.debug(f"Parsing sentence: {sentence}")
                 chart = EarleyChart(sentence.split(), grammar, progress=args.progress)
                 # print the result
-                print(chart.print_parse_trees())
+                tree, weight = chart.print_parse_trees()
+                print(f"{tree} {weight}")
+
                 log.debug(f"Profile of work done: {chart.profile}")
 
 

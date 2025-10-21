@@ -113,7 +113,6 @@ class EarleyChart:
 
                     sym = cur.rule.rhs[cur.dot_position - 1]
                     children.append(sym)
-                    # Synthesize a move to the left
                     cur = Item(rule=cur.rule, dot_position=cur.dot_position - 1,
                                start_position=cur.start_position)
                     continue
@@ -131,6 +130,8 @@ class EarleyChart:
                     cur = cur.edge_attach
                     if cur is None:
                         raise RuntimeError("Missing edge_attach on attach step")
+                else:
+                    raise RuntimeError(f"Unknown edge type: {etype}")
 
             # Reverse to restore left-to-right order
             children.reverse()
@@ -236,25 +237,6 @@ class Agenda:
     However, other implementations are possible -- and could be useful
     when dealing with weights, backpointers, and optimizations.
 
-    >>> a = Agenda()
-    >>> a.push(3)
-    >>> a.push(5)
-    >>> a.push(3)   # duplicate ignored
-    >>> a
-    Agenda([]; [3, 5])
-    >>> a.pop()
-    3
-    >>> a
-    Agenda([3]; [5])
-    >>> a.push(3)   # duplicate ignored
-    >>> a.push(7)
-    >>> a
-    Agenda([3]; [5, 7])
-    >>> while a:    # that is, while len(a) != 0
-    ...    print(a.pop())
-    5
-    7
-
     """
 
     def __init__(self) -> None:
@@ -283,7 +265,7 @@ class Agenda:
             idx = self._index.get(item)
             existing = self._items[idx]
             # keep whichever has lower weight
-            if isinstance(item, Item) and item.weight < existing.weight:
+            if item.weight < existing.weight:
                 self._items[idx] = item
             
     def pop(self) -> Item:

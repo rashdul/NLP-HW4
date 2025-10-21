@@ -130,7 +130,8 @@ class EarleyChart:
                     cur = cur.edge_attach
                     if cur is None:
                         raise RuntimeError("Missing edge_attach on attach step")
-
+                else:
+                    raise RuntimeError(f"Unknown edge type: {etype}")
             # Reverse to restore left-to-right order
             children.reverse()
             return f"({lhs} {' '.join(children)})"
